@@ -9,6 +9,12 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+
     "sourceMap": true,
     "baseUrl": ".",
     "types": [
