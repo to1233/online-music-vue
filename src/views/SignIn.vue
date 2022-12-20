@@ -6,8 +6,8 @@
                     <!--账号密码登录表单-->
                     <el-form ref="pwdLoginFormRef" :model="pwdLoginForm" :rules="pwdLoginFormRules" >
                         <!-- 用户名-->
-                        <el-form-item prop="username">
-                            <el-input placeholder="用户名" clearable v-model="pwdLoginForm.userName" prefix-icon="User">
+                        <el-form-item prop="phone">
+                            <el-input placeholder="用户名" clearable v-model="pwdLoginForm.phone" prefix-icon="User">
 
                             </el-input>
                         </el-form-item>
@@ -23,28 +23,6 @@
                         </el-form-item>
                     </el-form>
                 </el-tab-pane>
-
-           <!--     <el-tab-pane label="手机验证登录">
-                    &lt;!&ndash;手机验证登录表单&ndash;&gt;
-                    <el-form ref="phoneLoginFormRef" :model="phoneLoginForm" :rules="phoneLoginFormRules" >
-                        &lt;!&ndash; 手机号&ndash;&gt;
-                        <el-form-item prop="phone">
-                            <el-input placeholder="手机号" prefix-icon="Phone"  v-model="phoneLoginForm.phone"></el-input>
-                        </el-form-item>
-                        <el-form-item prop="phoneCode">
-                            <el-input placeholder="验证码" prefix-icon="Key"  v-model="phoneLoginForm.phoneCode">
-
-                            </el-input>
-                        </el-form-item>
-                        &lt;!&ndash;按钮区域&ndash;&gt;
-                        <el-form-item class="login_btns">
-                            <el-button type="primary" @click="phoneLogin" :loading="loading">登录</el-button>
-                            <el-button type="primary" @click="toRegister"> 注册</el-button>
-                        </el-form-item>
-                    </el-form>
-                </el-tab-pane>-->
-
-
             </el-tabs>
         </el-row>
         <el-row justify="space-around">
@@ -60,7 +38,7 @@
 </template>
 <script lang="ts">
     import {defineComponent, getCurrentInstance, reactive} from "vue";
-    import {loginByUserName ,loginByPhone } from "@/api";
+    import  {loginByUserName } from "@/api/backInfo";
     import { setToken } from "@/utils/auth";
     export  default  defineComponent({
         emits: ["changeData"],
@@ -68,15 +46,15 @@
             const { proxy } = getCurrentInstance() as any;
 
             const pwdLoginForm =   reactive({
-                userName: "",
+                phone: "",
                 password: "",
             });
 
             const state = reactive({
                 pwdLoginFormRules: {
-                    username: [{
+                    phone: [{
                         required: true,
-                        message: '请输入你的账号',
+                        message: '请输入你的手机号',
                         trigger: 'blur'
                     }],
                     // 验证密码是否合法
@@ -114,9 +92,9 @@
 
             // 手机号登录
             function phoneLogin() {
-                loginByPhone(phoneLoginForm).then(res => {
+              /*  loginByPhone(phoneLoginForm).then(res => {
                     saveUserInfo(res);
-                });
+                });*/
             }
 
 

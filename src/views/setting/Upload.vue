@@ -14,7 +14,7 @@
 <script>
     import { defineComponent } from "vue";
 
-    import { uploadUrl } from "@/api";
+    import { uploadUrl } from "@/api/client";
     import {mapGetters} from "vuex";
     export default  defineComponent({
         methods: {

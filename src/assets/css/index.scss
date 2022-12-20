@@ -47,7 +47,6 @@ html, body, #app {
 
 .pagination {
   @include layout(center);
-  transform: translateY(15px);
 }
 
 @media screen and (min-width: $sm) {

@@ -30,7 +30,8 @@
 <script lang="ts">
     import MyMusicIcon from "@/components/layouts/MyMusicIcon.vue";
     import {defineComponent} from 'vue';
-    import {getSongSheetList, getSingerList} from '@/api';
+    import Client from '@/api/client';
+
     import {Icon} from "@/enums";
     import {mapGetters} from "vuex";
 
@@ -100,13 +101,13 @@
                 if (this.dataType == "singer") {
                     // 记录当前的分页参数
                     this.$store.dispatch("keepSingerPage", this.queryParams);
-                    getSingerList(this.queryParams).then(res => {
+                    Client.getSingerList(this.queryParams.pageNum,'netease').then(res => {
                         this.dataList = res.artists.map(this.convertSinger());
                         this.total = 300;
                     })
                 } else {
                     this.$store.dispatch("keepSheetInfo", this.queryParams);
-                    getSongSheetList(this.queryParams).then(res => {
+                    Client.getSongSheetList(this.queryParams.pageNum,this.queryParams.cat,'netease').then(res => {
                         this.dataList = res.playlists;
                         this.total = res.total;
                     })
@@ -126,6 +127,7 @@
             showDetail(row) {
                 if (this.dataType == "singer") {
                     // 记录当前的分页参数
+                    this.$store.commit("setSource", 'netease');
                     this.$store.dispatch("keepSingerPage", this.queryParams);
                     this.$router.push({path: '/singer-detail', query: {itemId: row.id}})
                 } else {
@@ -164,8 +166,8 @@
     }
 
     .card-frame {
-        width: 13%;
-        margin: 0.5rem 1%;
+        width: 15%;
+        margin: 0.45rem 1%;
 
         .card {
             position: relative;

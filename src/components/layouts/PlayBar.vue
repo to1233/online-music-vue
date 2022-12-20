@@ -10,16 +10,20 @@
                 <el-image class="song-bar-img" fit="contain" :src="songPic" @click="goPlayerPage"/>
                 <!-- 播放开始与结束时间 -->
                 <div v-if="songId">
-                    <div class="song-info">{{this.songTitle}}---<router-link :to="{path:'/singer-detail',query:{itemId: this.singerId}}"> {{this.singerName}} </router-link>  </div>
+                    <div class="song-info">{{this.songTitle}}---
+                        <router-link :to="{path:'/singer-detail',query:{itemId: this.singerId}}"> {{this.singerName}}
+                        </router-link>
+                    </div>
                     <div class="time-info"> {{startTime}} / {{endTime}}</div>
                 </div>
             </div>
 
             <div class="song-ctr">
 
-                <MyMusicIcon class="yin-play-show" :icon="playStateList[playStateIndex]" @click="changePlayState"></MyMusicIcon>
+                <MyMusicIcon class="yin-play-show" :icon="playStateList[playStateIndex]"
+                             @click="changePlayState"></MyMusicIcon>
                 <!-- 上一首-->
-                <MyMusicIcon class="yin-play-show" :icon="iconList.SHANGYISHOU" @click="changePlayState"></MyMusicIcon>
+                <MyMusicIcon class="yin-play-show" :icon="iconList.SHANGYISHOU" @click="preSong"></MyMusicIcon>
                 <!--播放-->
                 <MyMusicIcon :icon="playButtonIcon" @click="togglePlay"></MyMusicIcon>
                 <!--下一首-->
@@ -39,55 +43,56 @@
     import {defineComponent} from "vue";
     import {Icon} from "@/enums";
     import {mapGetters} from "vuex";
-    import { formatSeconds } from "@/utils/common";
-    import { attachImageUrl} from "@/api";
-    export  default  defineComponent({
-        components:{
+    import {formatSeconds} from "@/utils/common";
+    import Client from "@/api/client";
+
+    export default defineComponent({
+        components: {
             MyMusicIcon,
         },
         data() {
-          return {
-              startTime: "00:00",
-              endTime: "00:00",
-              nowTime: 0, // 进度条位置
-              toggle: true,
-              playButtonIcon: Icon.BOFANG,  // 触发播放的按钮图标所以是 三角 ,暂停为 双竖线
-              volume: 50,
-              playState: Icon.XUNHUAN,
-              playStateList: [Icon.XUNHUAN, Icon.LUANXU],
-              playStateIndex: 0,
-              iconList: {
-                  ZHEDIE: Icon.ZHEDIE,
-                  SHANGYISHOU: Icon.SHANGYISHOU,
-                  XIAYISHOU: Icon.XIAYISHOU,
-                  YINLIANG: Icon.YINLIANG,
-                  JINGYIN: Icon.JINGYIN,
-                  LIEBIAO: Icon.LIEBIAO,
-                  dislike: Icon.Dislike,
-                  like: Icon.Like,
-              }
-          }
+            return {
+                startTime: "00:00",
+                endTime: "00:00",
+                nowTime: 0, // 进度条位置
+                toggle: true,
+                playButtonIcon: Icon.BOFANG,  // 触发播放的按钮图标所以是 三角 ,暂停为 双竖线
+                volume: 50,
+                playState: Icon.XUNHUAN,
+                playStateList: [Icon.XUNHUAN, Icon.LUANXU],
+                playStateIndex: 0,
+                iconList: {
+                    ZHEDIE: Icon.ZHEDIE,
+                    SHANGYISHOU: Icon.SHANGYISHOU,
+                    XIAYISHOU: Icon.XIAYISHOU,
+                    YINLIANG: Icon.YINLIANG,
+                    JINGYIN: Icon.JINGYIN,
+                    LIEBIAO: Icon.LIEBIAO,
+                    dislike: Icon.Dislike,
+                    like: Icon.Like,
+                }
+            }
         },
         computed: {
-          ...mapGetters([
-              "userId",
-              "isPlay", // 播放状态
-              "playBtnIcon", // 播放状态的图标
-              "songId", // 音乐id
-              "singerId", // 用于显示对应的歌手id
-              "songUrl", // 音乐地址
-              "songTitle", // 歌名
-              "singerName", // 歌手名
-              "songPic", // 歌曲图片
-              "curTime", // 当前音乐的播放位置
-              "duration", // 音乐时长
-              "currentPlayList",
-              "currentPlayIndex", // 当前歌曲在歌曲列表的位置
-              "showAside", // 是否显示侧边栏
-              "autoNext", // 用于触发自动播放下一首
-          ])
+            ...mapGetters([
+                "userId",
+                "isPlay", // 播放状态
+                "playBtnIcon", // 播放状态的图标
+                "songId", // 音乐id
+                "singerId", // 用于显示对应的歌手id
+                "songUrl", // 音乐地址
+                "songTitle", // 歌名
+                "singerName", // 歌手名
+                "songPic", // 歌曲图片
+                "curTime", // 当前音乐的播放位置
+                "duration", // 音乐时长
+                "currentPlayList",
+                "currentPlayIndex", // 当前歌曲在歌曲列表的位置
+                "showAside", // 是否显示侧边栏
+                "autoNext", // 用于触发自动播放下一首
+            ])
         },
-        watch:{
+        watch: {
             curTime() {
                 this.startTime = formatSeconds(this.curTime);
                 this.endTime = formatSeconds(this.duration);
@@ -100,7 +105,7 @@
                 this.nextSong();
             },
             isPlay(value) {
-                 this.playButtonIcon =  value ? Icon.ZANTING : Icon.BOFANG;
+                this.playButtonIcon = value ? Icon.ZANTING : Icon.BOFANG;
             },
         },
         methods: {
@@ -127,31 +132,75 @@
                     let playIndex = Math.floor(Math.random() * this.currentPlayList.length);
                     playIndex = playIndex === this.currentPlayIndex ? playIndex + 1 : playIndex;
                     this.$store.commit("setCurrentPlayIndex", playIndex);
-                    this.toPlay(this.currentPlayList[playIndex].url);
+                    this.toPlay(this.currentPlayList[playIndex]);
                 } else if (this.currentPlayIndex !== -1 && this.currentPlayList.length > 1) {
                     if (this.currentPlayIndex < this.currentPlayList.length - 1) {
                         this.$store.commit("setCurrentPlayIndex", this.currentPlayIndex + 1);
-                        this.toPlay(this.currentPlayList[this.currentPlayIndex].url);
+                        this.toPlay(this.currentPlayList[this.currentPlayIndex]);
                     } else {
                         this.$store.commit("setCurrentPlayIndex", 0);
-                        this.toPlay(this.currentPlayList[0].url);
+                        this.toPlay(this.currentPlayList[0]);
                     }
-                } else if (this.currentPlayList.length ==0) {
+                } else if (this.currentPlayList.length == 0) {
                     // 说明数据已经被清空 则清空当前播放的歌曲信息
                     this.$store.dispatch('clearAll');
                 }
             },
+            // 上一首
+            preSong() {
+                // 如果是乱序
+                if (this.playState == Icon.LUANXU) {
+                    let playIndex = Math.floor(Math.random() * this.currentPlayList.length);
+                    playIndex = playIndex === this.currentPlayIndex ? playIndex + 1 : playIndex;
+                    this.toPlay(this.currentPlayList[playIndex]);
+                } else if (this.currentPlayIndex !== -1 && this.currentPlayList.length > 1) {
+                    let playIndex;
+                    if (this.currentPlayIndex > 0) {
+                        playIndex =  this.currentPlayIndex - 1;
+                    } else {
+                        playIndex =  this.currentPlayList.length - 1;
+                    }
+                    this.toPlay(this.currentPlayList[playIndex]);
 
+                } else if (this.currentPlayList.length == 0) {
+                    // 说明数据已经被清空 则清空当前播放的歌曲信息
+                    this.$store.dispatch('clearAll');
+                }
+            },
             // 选中播放
-            toPlay(url) {
-                if (url && url !== this.songUrl) {
-                    const song = this.currentPlayList[this.currentPlayIndex];
-                    this.$store.dispatch('playMusic',song);
+            toPlay(row) {
+                if (row.url && row.url !== this.songUrl) {
+                    this.$store.dispatch('playMusic', row);
+                } else {
+                    // 重新去请求一次
+                    // 获取歌曲的播放链接
+                    Client.findSongUrlById(row.id, row.source).then(result => {
+                        if (result.data =='') {
+                            this["$message"].warn("可用链接为空,播放下一首")
+                            this.nextSong();
+                            return;
+                        }
+                        const songInfo = {
+                            id: row.id,
+                            url: result.data,
+                            pic: row.pic == '' ? result.imgUrl : row.pic,
+                            songTitle: row.songTitle,
+                            singerName: row.singerName,
+                            singerId: row.singerId,
+                            source: row.source, // 歌曲来源
+                            album: row.album, // 专辑名称
+                            index: row.index,
+                            lyric: ''
+                        };
+                        this.currentPlayList[this.currentPlayIndex] =songInfo;
+                        this.$store.commit("setCurrentPlayList", this.currentPlayList);
+                        this.$store.dispatch("playMusic", songInfo);
+                    });
                 }
             },
 
             goPlayerPage() {
-                this.$router.push({path: '/lyric', query: {itemId: this.songId  }});
+                this.$router.push({path: '/lyric', query: {itemId: this.songId}});
             }
 
         }
@@ -162,7 +211,16 @@
 </script>
 
 
-
 <style lang="scss" scoped>
     @import "@/assets/css/play-bar.scss";
+
+    .router-link-active {
+        text-decoration: none; //去除默认样式
+        color: orange; //高亮的颜色
+    }
+
+    a {
+        text-decoration: none;
+        color: grey;
+    }
 </style>

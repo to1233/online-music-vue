@@ -1,6 +1,6 @@
 <template>
   <div class="song-container">
-    <el-image class="song-pic" fit="contain" :src="attachImageUrl(songPic)" />
+    <el-image class="song-pic" fit="contain" :src="songPic" />
     <ul class="song-info">
       <li>歌手：{{ singerName }}</li>
       <li>歌曲：{{ songTitle }}</li>
@@ -30,7 +30,7 @@
 import { computed, defineComponent, ref, watch } from "vue";
 import { useStore } from "vuex";
 import { parseLyric } from "@/utils/common";
-import { attachImageUrl } from "@/api";
+import Client from "@/api/client";
 
 export default defineComponent({
   setup() {
@@ -79,7 +79,6 @@ export default defineComponent({
       lrcTop,
       lyricArr,
       songId,
-      attachImageUrl: attachImageUrl,
     };
   },
 });

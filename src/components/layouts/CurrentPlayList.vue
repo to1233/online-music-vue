@@ -1,6 +1,6 @@
 <template>
     <transition name="aside-fade">
-        <div class="yin-current-play" v-if="showAside">
+        <div class="yin-current-play" id="currentPlay" v-if="showAside">
             <h2 class="title">当前播放</h2>
             <div class="control">
                 <el-row>
@@ -14,11 +14,11 @@
                         </el-icon>
                         添加到我的歌单
                     </el-col>
-                    <el-col :span="4">
+                    <el-col :span="4" @click="clearAll">
                         <el-icon>
                             <Delete/>
                         </el-icon>
-                        清除
+                        清空
                     </el-col>
                 </el-row>
             </div>
@@ -26,9 +26,9 @@
             <el-table :data="currentPlayList" style="width: 100%" stripe @row-click="playMusic"
                       @cell-mouse-enter="cellMouseEnter" @cell-mouse-leave="cellMouseLeave" :show-header="false"
                       empty-text="没有歌曲">
-                <el-table-column prop="songTitle" label="歌曲名" width="180"/>
+                <el-table-column prop="songTitle" label="歌曲名" width="140"/>
                 <el-table-column prop="singerName" label="歌手"/>
-
+                <el-table-column prop="album" label="专辑"/>
                 <el-table-column label="操作">
                     <template #default="scope">
                         <div v-if="scope.row.hoverFlag" style="font-size: 30px">
@@ -49,18 +49,6 @@
                     </template>
                 </el-table-column>
             </el-table>
-
-
-            <!--<ul class="menus">
-                <li v-for="(item,index) in currentPlayList"
-                    :class="{'is-play': songId === item.id  }"
-                    :key="index"
-                    @click="playMusic(item,currentPlayList)"
-                    @hover=""
-                >
-                    {{ item.songTitle}}
-                </li>
-            </ul>-->
         </div>
     </transition>
 </template>
@@ -68,7 +56,7 @@
 <script lang="ts">
     import {defineComponent, getCurrentInstance, computed, onMounted} from "vue";
     import {useStore} from "vuex";
-
+    import {saveUserTempPlayList} from "@/api/backInfo";
     import mixin from "@/mixins/mixin";
 
     export default defineComponent({
@@ -82,16 +70,22 @@
             const showAside = computed(() => store.getters.showAside); // 是否显示侧边栏
             const autoNext = computed(() => store.getters.autoNext); // 是否自动播放下一首
 
-            onMounted(() => {
-                document.addEventListener('click', () => {
-                    proxy.$store.commit('setShowAside', false)
-                }, true)
-            })
+            const token = computed(() => store.getters.token);
+
 
 
             // 将当前歌曲添加到我的歌单中
             function addMyMenu() {
-                (proxy as any).$message.success("添加成功");
+                // 如果已经登录则向后端发送请求并记录当前的歌单信息
+                if(token.value) {
+                    saveUserTempPlayList(currentPlayList.value).then(resizeBy => {
+                        (proxy as any).$message.success("添加成功");
+                    });
+                } else {
+                    (proxy as any).$message.warn("请先登录");
+                    // 弹出登录窗口
+                    proxy.$store.commit("setSignInDiaLog",true);
+                }
             }
 
             // 清空当前的播放信息
@@ -100,13 +94,12 @@
             }
 
             // 将目标歌曲信息进行移除
-                function deleteSong(row) {
+            function deleteSong(row) {
 
                 let Arr = JSON.parse(JSON.stringify(currentPlayList.value));
-                let cloudSongList =  Arr.filter(item =>{
+                let cloudSongList = Arr.filter(item => {
                     return item.id != row.id
                 });
-                console.log(cloudSongList);
                 proxy.$store.commit("setCurrentPlayList", JSON.parse(JSON.stringify(cloudSongList)));
                 // 如果是删除的是正在播放的歌曲,则触发下一曲的方法
                 proxy.$store.commit("setAutoNext", !autoNext.value);
@@ -119,7 +112,6 @@
                 for (let index = 0; index < Arr.length; index++) {
                     const element = Arr[index]
                     if (element.id == row.id) {
-                        console.log('找到对应行')
                         element['hoverFlag'] = true
                     } else {
                         element['hoverFlag'] = false
@@ -133,11 +125,11 @@
                 let Arr = JSON.parse(JSON.stringify(currentPlayList.value))
                 for (let index = 0; index < Arr.length; index++) {
                     const element = Arr[index];
-                    console.log('移除对应的标识');
                     element['hoverFlag'] = false
                 }
                 // proxy.$store.commit("setCurrentPlayList", JSON.parse(JSON.stringify(Arr)));
             }
+
 
             return {
                 songId,

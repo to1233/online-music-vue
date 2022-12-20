@@ -1,218 +1,229 @@
 <template>
-  <div class="home">
-    <el-row :span="24">
-      <el-col :span="12">
-        <div class="searchComponent">
-          <el-autocomplete
-                  v-model="searchWords"
-                  :fetch-suggestions="querySearchAsync"
-                  :popper-append-to-body="false"
-                  placeholder="搜索"
-                  @select="startSearch"
-                  @keydown.enter="startSearch"
-          />
-        </div>
+    <div class="home">
+        <el-row :span="24">
+            <el-col :span="12">
+                <div class="searchComponent">
+                    <el-autocomplete
+                            v-model="searchWords"
+                            :fetch-suggestions="querySearchAsync"
+                            :popper-append-to-body="false"
+                            placeholder="搜索"
+                            @select="startSearch"
+                            @keydown.enter="startSearch"
+                    />
+                </div>
+            </el-col>
+        </el-row>
+        <!--tab页显示-->
+        <el-row>
+            <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleChange" stretch>
+                <el-tab-pane label="所有音乐" name="all">
+                    <PlayList :activeName="activeName" :playList="songList" @changeDataList="changeDataList" :isAll="true"></PlayList>
+                </el-tab-pane>
+                <el-tab-pane label="网易云音乐" name="netease">
+                    <PlayList :activeName="activeName" :playList="songList" @changeDataList="changeDataList"></PlayList>
+                </el-tab-pane>
+                <el-tab-pane label="酷我音乐" name="kuwo">
+                    <PlayList :activeName="activeName" :playList="songList" @changeDataList="changeDataList"></PlayList>
+                </el-tab-pane>
+                <el-tab-pane label="QQ音乐" name="qq">
+                    <PlayList :activeName="activeName" :playList="songList" @changeDataList="changeDataList"></PlayList>
+                </el-tab-pane>
+                <el-tab-pane label="酷狗音乐" name="kugou">
+                    <PlayList :activeName="activeName" :playList="songList" @changeDataList="changeDataList"></PlayList>
+                </el-tab-pane>
 
-      </el-col>
-    </el-row>
-    <!--tab页显示-->
-    <el-row>
-      <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick" stretch>
-        <el-tab-pane label="所有音乐" name="all">
-          <PlayList :playList="songList" @changeDataList="changeDataList"></PlayList>
-        </el-tab-pane>
-        <el-tab-pane label="网易云音乐" name="first">
-          <PlayList :playList="songList"></PlayList>
-        </el-tab-pane>
-        <el-tab-pane label="QQ音乐" name="second">Config</el-tab-pane>
-        <el-tab-pane label="酷狗音乐" name="third">Role</el-tab-pane>
-        <el-tab-pane label="咪咕音乐" name="fourth">Task</el-tab-pane>
-      </el-tabs>
-    </el-row>
+                <el-pagination @current-change="handleCurrentChange" v-model:current-page="currentPage2" background
+                               layout="prev, pager, next" :total="100"/>
+            </el-tabs>
+        </el-row>
 
-  </div>
+    </div>
 </template>
 
 <script lang="ts">
-import { defineComponent ,ref,getCurrentInstance} from 'vue';
-import PlayList from "@/components/PlayList.vue";
-import { searchSongs,searchSongSuggest} from "@/api";
-export default defineComponent({
-  name: 'Home',
-  components : {
-    PlayList
-  },
-  setup() {
-    // 歌曲id
-    const songList = ref([]); // 歌单列表
-    const activeName = ref('all');
-    const searchWords = ref(''); // 搜索关键词
-    const result = ref([]);
-    const {proxy} = getCurrentInstance();
-    /**
-     * 触发搜索
-     */
-    function  startSearch() {
-      if (searchWords.value == '') {
-        (proxy as any).$message({
-          message: "搜索内容不能为空哦",
-          type: "warning",
-        });
-        return;
-      }
-      searchSongs({ 's': searchWords.value}).then(resizeBy => {
-         let cloudSongList =   resizeBy.songs.map(convert(false)).filter(item=>{
-           return item.disabled == false
-         });
+    import {defineComponent, ref, getCurrentInstance} from 'vue';
+    import PlayList from "@/components/PlayList.vue";
+    import Client from "@/api/client";
 
-          songList.value = cloudSongList;
-       });
-    }
+    export default defineComponent({
+        name: 'Home',
+        components: {
+            PlayList
+        },
+        setup() {
+            // 歌曲id
+            const songList = ref([]); // 歌单列表
+            const activeName = ref('netease');
+            const searchWords = ref(''); // 搜索关键词
+            const result = ref([]);
+            const {proxy} = getCurrentInstance();
 
-   async function querySearchAsync(queryString: string, cb: (arg: any) => void) {
-     if (queryString == '' ||queryString == undefined) {
-       cb([]);
-     } else {
-      await searchRemoteCloud(queryString);
-       cb(result.value);
-     }
+            const currentPage2 = ref(1);
 
-    }
+            /**
+             * 触发联想搜索
+             */
+            function startSearch() {
+                searchSongs(activeName.value, 1); // 搜索歌曲信息
+            }
 
-    // 远程搜索联想---网易云
-    async function searchRemoteCloud(queryString) {
-      // 联想搜索
-      await   searchSongSuggest({ s: queryString}).then(resizeBy =>{
-        // 存在三种类型 songs  artists albums
+            async function searchSongs(activeName, currentPage) {
+                if (searchWords.value == '') {
+                    (proxy as any).$message({
+                        message: "搜索内容不能为空哦",
+                        type: "warning",
+                    });
+                    return;
+                }
+                if (activeName != "all") {
+                    Client.searchSongs(searchWords.value, currentPage, activeName).then(result => {
+                        songList.value = result.data;
+                    });
+                } else {
+                    let result = await Client.searchSongsAll(searchWords.value, currentPage);
+                    songList.value = result;
+                }
+            }
 
-        let songArr = resizeBy.songs.map(item => {
-          return {
-            value: item.name,
-            id: item.id
-          }
-        });
+            const handleCurrentChange = (val: number) => {
+                searchSongs(activeName.value, val); // 搜索歌曲信息
+            }
 
 
-        let artistArr = resizeBy.artists.map(item => {
-          return {
-            value: item.name,
-            id: item.id
-          }
-        });
+            /**
+             * 联想搜索
+             * @param queryString 查询对应的文件
+             * @param cb 回调函数
+             */
+            async function querySearchAsync(queryString: string, cb: (arg: any) => void) {
+                if (queryString == '' || queryString == undefined) {
+                    await hotSearchList('netease');
+                    cb(result.value);
+                } else {
+                    await searchRemote(queryString, 'netease');
+                    cb(result.value);
+                }
+            }
+
+            /**
+             * 远程搜索联想
+             * @param queryString 关键词
+             */
+            async function searchRemote(queryString, sourceName) {
+                // 联想搜索
+                await Client.searchSongSuggest(queryString, sourceName).then(resizeBy => {
+                    result.value = resizeBy.data;
+                });
+            }
 
 
-        let albumArr = resizeBy.artists.map(item => {
-          return {
-            value: item.name,
-            id: item.id
-          }
-        });
+            /**
+             * 展示对应的热搜
+             **/
+            async function hotSearchList(sourceName) {
+                // 联想搜索
+                await Client.hotSearchList(sourceName).then(resizeBy => {
+                    result.value = resizeBy.data;
+                });
+            }
 
-        result.value  =  [...songArr, ...artistArr,...albumArr];
-      });
-    }
 
-    function convert(allowAll) {
-      return (songInfo) => ({
-        id: `${songInfo.id}`,
-        title: songInfo.name,
-        artist: songInfo.ar[0].name,
-        artist_id: `${songInfo.ar[0].id}`,
-        album: songInfo.al.name,
-        album_id: `nealbum_${songInfo.al.id}`,
-        source: 'netease',
-        source_url: `http://music.163.com/#/song?id=${songInfo.id}`,
-        img_url: songInfo.al.picUrl,
-        url: `netrack_${songInfo.id}`,
-        disabled: allowAll ? false : !isPlayable(songInfo),
-      });
-    }
+            /**
+             * 网易云---校验是否可以播放
+             * @param song 歌曲信息
+             */
+            function isPlayable(song) {
+                return getNEScore(song) < 10;
+            }
 
-    function isPlayable(song) {
-      return getNEScore(song) < 10;
-    }
+            function getNEScore(song) {
+                if (!song) return 0;
+                const privilege = song.privilege;
 
-    function getNEScore(song) {
-      if (!song) return 0;
-      const privilege = song.privilege;
+                if (song.program) return 0;
 
-      if (song.program) return 0;
+                if (privilege) {
+                    if (privilege.st != null && privilege.st < 0) {
+                        return 100;
+                    }
+                    if (
+                        privilege.fee > 0 &&
+                        privilege.fee !== 8 &&
+                        privilege.payed === 0 &&
+                        privilege.pl <= 0
+                    )
+                        return 10;
+                    if (privilege.fee === 16 || (privilege.fee === 4 && privilege.flag & 2048))
+                        return 11;
+                    if (
+                        (privilege.fee === 0 || privilege.payed) &&
+                        privilege.pl > 0 &&
+                        privilege.dl === 0
+                    )
+                        return 1e3;
+                    if (privilege.pl === 0 && privilege.dl === 0) return 100;
 
-      if (privilege) {
-        if (privilege.st != null && privilege.st < 0) {
-          return 100;
+                    return 0;
+                }
+
+                if (song.status >= 0) return 0;
+                if (song.fee > 0) return 10;
+
+                return 100;
+            }
+
+            // 子集修改集合数据之后重新赋值给父级
+            function changeDataList(changeData) {
+                songList.value = changeData;
+            }
+
+            /**
+             * 切换tab页面的时候
+             * @param tabPaneName 切换标签后的数据
+             * @param event
+             */
+            function handleChange(tabPaneName, event) {
+                searchSongs(tabPaneName.props.name, 1);
+            }
+
+
+            // 歌单id
+            return {
+                songList,
+                activeName,
+                searchWords,
+                startSearch,
+                querySearchAsync,
+                changeDataList,
+                handleChange,
+                currentPage2,
+                handleCurrentChange
+            }
         }
-        if (
-                privilege.fee > 0 &&
-                privilege.fee !== 8 &&
-                privilege.payed === 0 &&
-                privilege.pl <= 0
-        )
-          return 10;
-        if (privilege.fee === 16 || (privilege.fee === 4 && privilege.flag & 2048))
-          return 11;
-        if (
-                (privilege.fee === 0 || privilege.payed) &&
-                privilege.pl > 0 &&
-                privilege.dl === 0
-        )
-          return 1e3;
-        if (privilege.pl === 0 && privilege.dl === 0) return 100;
-
-        return 0;
-      }
-
-      if (song.status >= 0) return 0;
-      if (song.fee > 0) return 10;
-
-      return 100;
-    }
-
-
-
-    // 子集修改集合数据之后重新赋值给父级
-    function changeDataList(changeData) {
-      songList.value =changeData;
-    }
-
-    function handleClick() {
-      console.log()
-    }
-
-
-
-
-
-    // 歌单id
-    return {
-      songList,
-      activeName,
-      searchWords,
-      startSearch,
-      querySearchAsync,
-      changeDataList,
-      handleClick
-  }
-  }
-});
+    });
 </script>
 
 <style lang="scss" scoped>
 
-  .el-tabs {
-    flex: auto;
-    --el-tabs-header-height: 40px;
-  }
+    .demo-tabs{
+        margin-bottom: 2rem;
+    }
 
-   ::v-deep .el-autocomplete {
-      width:50% !important;
-      position: relative;
-      display: inline-block;
-   }
+    .el-tabs {
+        flex: auto;
+        --el-tabs-header-height: 40px;
+    }
 
-  .searchComponent{
-    margin-left: 2rem;
-  }
+    ::v-deep .el-autocomplete {
+        width: 50% !important;
+        position: relative;
+        display: inline-block;
+    }
+
+    .searchComponent {
+        margin-left: 2rem;
+    }
 
 
 </style>

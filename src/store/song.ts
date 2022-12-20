@@ -24,7 +24,9 @@ export default ({
 
         showAside: false, // 是否显示侧边栏
         pageNum: 1, // 记录当前页码 以便回退的时候进行重新加载
-        cat: '全部歌曲', // 记录当前歌单的类别 以便回退的时候进行重新加载
+        cat: '全部歌曲', // 记录当前歌单的类别 以便回退的时候进行重新加载,
+        source: 'netease',// 歌曲来源,
+        album: '', // 专辑名称
     },
     getters: {
         songId: (state: any) => state.songId,
@@ -48,7 +50,9 @@ export default ({
         currentPlayIndex: (state) => state.currentPlayIndex,
         showAside: (state) => state.showAside,
         pageNum: (state) => state.pageNum,
-        cat: (state) => state.cat
+        cat: (state) => state.cat,
+        source: (state) => state.source,
+        album: (state) => state.source
     },
     mutations: {
         setSongId: (state, songId) => {
@@ -115,9 +119,17 @@ export default ({
         setCat: (state, cat) => {
             state.cat = cat;
         },
+        // 歌曲来源
+        setSource: (state, source) => {
+           state.source = source;
+        },
+        // 设置专辑名称
+        setAlbum: (state, album) => {
+            state.album = album;
+        }
     },
     actions: {
-        playMusic: ({commit}, {id, url, pic, index, songTitle, singerName, lyric,singerId}) => {
+        playMusic: ({commit}, {id, url, pic, index, songTitle, singerName, lyric, singerId, source,album}) => {
             commit("setSongId", id);
             commit("setSongUrl", url);
             commit("setSongPic", pic);
@@ -125,8 +137,34 @@ export default ({
             commit("setSongTitle", songTitle);
             commit("setSingerName", singerName);
             commit("setLyric", lyric);
-            commit("setSingerId",singerId);
+            commit("setAlbum", album);
+            commit("setSingerId", singerId);
+            commit("setSource", source)
         },
+        /**
+         * 歌单歌曲信息
+         * @param commit 提交状态
+         * @param songList 歌曲信息集合
+         */
+        playMusicList: ({commit},songList) => {
+            commit("setCurrentPlayList", songList);
+            if (songList.length > 0) {
+                const song = songList[0];
+                const {id, url, pic, songTitle, singerName, lyric, singerId, source,album} = song;
+                commit("setSongId", id);
+                commit("setSongUrl", url);
+                commit("setSongPic", pic);
+                commit("setCurrentPlayIndex", 0);
+                commit("setSongTitle", songTitle);
+                commit("setSingerName", singerName);
+                commit("setLyric", lyric);
+                commit("setAlbum", album);
+                commit("setSingerId", singerId);
+                commit("setSource", source)
+            }
+        },
+
+
 
         // 清空当前信息
         clearAll: ({commit}) => {
@@ -135,6 +173,7 @@ export default ({
             commit("setSongPic", 'https://p1.music.126.net/6y-UleORITEDbvrOLV0Q8A==/5639395138885805.jpg');
             commit("setSongTitle", '');
             commit("setSingerName", '');
+            commit("setAlbum", '');
             commit("setCurrentPlayIndex", 0);
             commit("setCurrentPlayList", []);
         },
@@ -149,7 +188,6 @@ export default ({
         keepSingerPage: ({commit}, {pageNum}) => {
             commit("setPageNum", pageNum);
         }
-
 
     },
 });

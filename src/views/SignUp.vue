@@ -7,6 +7,9 @@
             <el-form-item prop="password" label="密码">
                 <el-input type="password" placeholder="密码" v-model="registerForm.password"></el-input>
             </el-form-item>
+            <el-form-item prop="confirmPassword" label="确认密码">
+                <el-input type="password" placeholder="密码" v-model="registerForm.confirmPassword"></el-input>
+            </el-form-item>
             <el-form-item prop="sex" label="性别">
                 <el-radio-group v-model="registerForm.sex">
                     <el-radio :label="0">女</el-radio>
@@ -26,11 +29,6 @@
             <el-form-item prop="introduction" label="签名">
                 <el-input type="textarea" placeholder="签名" v-model="registerForm.introduction"></el-input>
             </el-form-item>
-            <el-form-item prop="location" label="地区">
-                <el-select v-model="registerForm.location" placeholder="地区" style="width: 100%">
-                    <el-option v-for="item in AREA" :key="item.value" :label="item.label" :value="item.value"></el-option>
-                </el-select>
-            </el-form-item>
             <el-form-item class="sign-btn">
                 <el-button type="primary" @click="handleSignUp()">注册</el-button>
                 <el-button  @click="cancel(formRef)">取消</el-button>
@@ -42,8 +40,9 @@
     import { defineComponent } from "vue";
     import { getCurrentInstance, reactive } from "vue";
     import { AREA } from "@/enums";
-    import { signUp} from "@/api";
+    import { signUp} from "@/api/client";
     export default  defineComponent({
+        emits: ["closeSignUpDialog"],
         setup() {
             const { proxy } = getCurrentInstance();
 
@@ -68,11 +67,12 @@
 
             // 取消
             function cancel() {
-                return ;
+                proxy.$emit("closeSignUpDialog");
             }
             return {
                 registerForm,
                 handleSignUp,
+                cancel,
                 AREA
             };
 

@@ -14,7 +14,7 @@
 <script>
     import {defineComponent} from "vue";
     import SongList from "../song/SongList";
-    import { getSongOfSingerName, getSongSheetOfLikeTitle} from "@/api";
+   // import { getSongOfSingerName, getSongSheetOfLikeTitle} from "@/api";
     export default defineComponent({
         components: {
             SongList
@@ -36,13 +36,13 @@
         // 获取对应的数据
         created() {
             this.searchKeyWord = this.$route.query["keywords"];
-            getSongOfSingerName(this.searchKeyWord).then(resizeBy => {
+           /* getSongOfSingerName(this.searchKeyWord).then(resizeBy => {
                 this.songsBySinger =resizeBy;
             });
 
             getSongSheetOfLikeTitle(this.searchKeyWord).then(resizeBy => {
                 this.songSheetByTitle = resizeBy;
-            });
+            });*/
 
         }
     })

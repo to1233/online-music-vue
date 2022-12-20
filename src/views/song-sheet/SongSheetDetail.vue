@@ -20,19 +20,7 @@
                                     content="播放全部"
                                     placement="top"
                             >
-                                <el-button type="info" :icon="CaretRight" circle></el-button>
-                            </el-tooltip>
-                        </el-col>
-
-
-                        <el-col :span="5">
-                            <el-tooltip
-                                    class="box-item"
-                                    effect="dark"
-                                    content="添加到我的歌单"
-                                    placement="top"
-                            >
-                                <el-button type="success" :icon="FolderAdd" circle></el-button>
+                                <el-button type="info" :icon="CaretRight" @click="showAll" circle></el-button>
                             </el-tooltip>
                         </el-col>
 
@@ -43,17 +31,7 @@
                                     content="收藏"
                                     placement="top"
                             >
-                                <el-button type="warning" :icon="Star" circle></el-button>
-                            </el-tooltip>
-                        </el-col>
-                        <el-col :span="5">
-                            <el-tooltip
-                                    class="box-item"
-                                    effect="dark"
-                                    content="链接"
-                                    placement="top"
-                            >
-                                <el-button type="danger" :icon="Position" circle></el-button>
+                                <el-button type="warning" :icon="Star" circle @click="collectSongSheet" ></el-button>
                             </el-tooltip>
                         </el-col>
                     </el-row>
@@ -76,16 +54,18 @@
     import {defineComponent} from "vue";
     import {mapGetters} from "vuex";
     import PlayList from "@/components/PlayList.vue";
-    import {findSheetInfoById, attachImageUrl} from "@/api";
+    import Client from "@/api/client";
+    import {  saveUserSongSheet } from "@/api/backInfo"
+    import { cloud_convert } from "@/utils/common.ts";
 
     export default defineComponent({
         created() {
             this.sheetId = this.$route.query["itemId"] as string;
             // 查询歌单详情信息
-            findSheetInfoById({id: this.sheetId}).then(res => {
+            Client.findSheetInfoById(this.sheetId,'netease').then(res => {
                 this.songDetails.pic = res.playlist.coverImgUrl;
                 this.songDetails.title = res.playlist.name;
-                this.currentSongList = res.playlist.tracks.map(this.convert()).filter(item => {
+                this.currentSongList = res.playlist.tracks.map(cloud_convert).filter(item => {
                     return !item.disabled
                 }); // 歌单中的歌曲信息
             })
@@ -103,34 +83,49 @@
             PlayList,
         },
         methods: {
-            imageUrl(pic) {
-                return attachImageUrl(pic);
-            },
 
             // 回退到上一个路由
             goBack() {
                 this.$router.go(-1);
             },
 
+            /**
+             * 将当前的歌单下的歌曲信息替换掉临时列表中
+             */
+            showAll() {
+                this.$store.dispatch('clearAll');
+                if(this.currentSongList.length > 0) {
+                    const song = this.currentSongList[0];
+                    // 获取歌曲的播放链接
+                    Client.findSongUrlById(song.id, song.source).then(result => {
+                        const songInfo = song;
+                        songInfo .url = result.data,
+                         songInfo.pic = songInfo.pic == '' ? result.imgUrl : songInfo.pic,
+                        this.currentSongList[0] =songInfo;
+                        this.$store.dispatch('playMusicList',this.currentSongList);
+                    });
+
+                }
+            },
+
             // 子集修改集合数据之后重新赋值给父级
             changeDataList(changeData) {
                 this.currentSongList = changeData;
             },
-            convert() {
-                return (songInfo) => ({
-                    id: `${songInfo.id}`,
-                    title: songInfo.name,
-                    artist: songInfo.ar[0].name,
-                    artist_id: `${songInfo.ar[0].id}`,
-                    album: songInfo.al.name,
-                    album_id: `nealbum_${songInfo.al.id}`,
-                    source: 'netease',
-                    source_url: `http://music.163.com/#/song?id=${songInfo.id}`,
-                    img_url: songInfo.al.picUrl,
-                    url: `netrack_${songInfo.id}`,
-                    disabled: songInfo.st < 0,
-                });
-            }
+
+            // 将歌单收藏到数据库中
+            collectSongSheet(row) {
+                if (this.token) {
+                    saveUserSongSheet(this.sheetId,this.songDetails.title).then(resizeBy => {
+                         this["$message"].success("保存成功");
+                    });
+                } else {
+                    // 弹出登录窗口
+                    this["$message"].warn("请先登录");
+                    this.$store.commit("setSignInDiaLog",true);
+                }
+
+            },
         },
         data() {
             return {
@@ -148,7 +143,7 @@
         },
         computed: {
             ...mapGetters([
-                "userId"
+                "token"
             ])
         },
     })
@@ -173,6 +168,7 @@
         flex-direction: column;
         align-items: center;
         padding-top: 20px;
+
 
         .album-img {
             height: 250px;

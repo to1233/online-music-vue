@@ -5,7 +5,7 @@
   position: fixed;
   z-index: 100;
   bottom: 0;
-  width: 100%;
+  width: -webkit-fill-available;
   transition: all 0.5s;
 
   .fold {

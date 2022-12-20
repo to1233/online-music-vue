@@ -19,11 +19,10 @@
 
 <script>
     import {defineComponent} from "vue";
-    import {deleteUser} from "@/api";
     import {mapGetters} from "vuex";
     import PersonalData from "./PersonalData";
     import Password from "./Password";
-
+    import { deleteUser} from "@/api/backInfo"
 
     export default defineComponent({
         components :{
@@ -35,10 +34,10 @@
             cancelAccount() {
                 this.$messageBox.confirm(
                     '确定注销当前账号吗?',
-                    'Warning',
+                    '询问',
                     {
-                        confirmButtonText: 'OK',
-                        cancelButtonText: 'Cancel',
+                        confirmButtonText: '确认',
+                        cancelButtonText: '取消',
                         type: 'warning',
                     }
                 )
@@ -46,7 +45,7 @@
                         deleteUser(this.userId).then(res => {
                             if (res) {
                                 this.$message.success("注销成功");
-                                this.$store.commit("setUserId", false);
+                                this.$store.commit("setToken", false);
                             } else {
                                 this.$message.error("注销失败");
                             }
@@ -56,10 +55,6 @@
                         this.$message.warn("操作取消")
                     })
             }
-        },
-
-        data() {
-            return {}
         },
         computed: {
             ...mapGetters([

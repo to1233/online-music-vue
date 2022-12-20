@@ -23,7 +23,8 @@
 <script>
     import { defineComponent,computed } from "vue";
     import {mapGetters} from "vuex";
-    import { updateUserPassword } from "@/api";
+    import { updateUserPassword } from "@/api/backInfo"
+
 
     export default  defineComponent({
         methods:{
@@ -35,7 +36,7 @@
                     callback();
                 }
             },
-            // 校验密码相等
+            // 校验两次输入的密码相等
             validateCheck(rule,value,callback) {
                 if (value == "") {
                     callback(new Error("密码不能为空"));
@@ -52,7 +53,9 @@
                     if (!valid) return (canRun = false);
                 });
 
-                if (!canRun) return ;
+                if (!canRun) {
+                    return ;
+                }
                 this.form.userId = this.userId;
 
                 // 更新密码

@@ -32,4 +32,7 @@ interface SongInfo {
   index: string,
   songTitle: string,
   singerName: string,
+  source: string,
+  singerId: string,
+  album: string
 }

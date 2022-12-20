@@ -80,3 +80,126 @@ export function getBirth(value) {
     const day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
     return year + "-" + month + "-" + day;
 }
+
+
+/**
+ * 将网易云的数据转化为统一的数据
+ * @param allowAll
+ */
+export function cloud_convert(songInfo,index) {
+
+    return ({
+        id: `${songInfo.id}`,
+        songTitle: songInfo.name,
+        singerName: songInfo.ar[0].name,
+        singerId: `${songInfo.ar[0].id}`,
+        album: songInfo.al.name,
+        album_id: `nealbum_${songInfo.al.id}`,
+        source: 'netease',
+        sourceName: '网易云',
+        source_url: songInfo.al.picUrl,
+        pic: songInfo.al.picUrl,
+        url: '',
+        index: index,
+        disabled:songInfo.fee ==1 ||songInfo.fee ==4 ,
+    });
+}
+
+/**
+ * 将酷我的后端歌曲信息统一转化格式
+ * @param song
+ */
+export function kuwo_convert(song) {
+    return ({
+        id: song.rid,
+        songTitle: song.name,
+        singerName: song.artist,
+        singerId: song.artistid,
+        album: song.album,
+        album_id: `kgalbum_${song.albumid}`,
+        source: 'kuwo',
+        sourceName: '酷我',
+        source_url: '',
+        pic: song.pic,
+        url: '',
+        lyric_url: song.FileHash,
+    })
+}
+
+/**
+ * 将后台的qq 歌曲转化为统一的歌曲信息
+ * @param song
+ */
+export function  qq_convert(song) {
+    return ({
+        id: song.songmid,
+        songTitle: song.songname,
+        singerName: song.singer[0].name,
+        singerId: song.singer[0].id,
+        album: song.albumname,
+        album_id: `kgalbum_${song.albumid}`,
+        pic: qqGetImageUrl(song.albummid, 'album'),
+        source: 'qq',
+        sourceName: 'QQ',
+        source_url: '',
+        disabled: !qqIsPlayable(song)
+    })
+}
+
+
+export function kugou_convert(song) {
+    return ({
+        id: song.FileHash,
+        songTitle: song.SongName,
+        singerName: song.SingerName,
+        singerId: song.SingerId,
+        album: song.AlbumName,
+        album_id: `kgalbum_${song.AlbumID}`,
+        pic: '',
+        source: 'kugou',
+        sourceName: '酷狗',
+        source_url: `http://www.kugou.com/song/#hash=${song.FileHash}&album_id=${song.AlbumID}`,
+        disabled: false
+    })
+
+}
+
+/**
+ * 获取qq 歌曲封面图
+ * @param qqimgid
+ * @param imgType
+ */
+function qqGetImageUrl(qqimgid, imgType) {
+    if (qqimgid == null) {
+        return '';
+    }
+    let category = '';
+
+    if (imgType === 'artist') {
+        category = 'mid_singer_300';
+    }
+    if (imgType === 'album') {
+        category = 'mid_album_300';
+    }
+
+    const s = [
+        category,
+        qqimgid[qqimgid.length - 2],
+        qqimgid[qqimgid.length - 1],
+        qqimgid,
+    ].join('/');
+    const url = `http://imgcache.qq.com/music/photo/${s}.jpg`;
+
+    return url;
+}
+
+function qqIsPlayable(song) {
+    const switchFlag = song.switch.toString(2).split('');
+
+    switchFlag.pop();
+    switchFlag.reverse();
+    const playFlag = switchFlag[0];
+    // 当前标志位
+    return playFlag === '1';
+}
+

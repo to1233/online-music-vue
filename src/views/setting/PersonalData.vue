@@ -20,12 +20,6 @@
             <el-input type="textarea" placeholder="签名" v-model="registerForm.introduction"></el-input>
         </el-form-item>
 
-        <el-form-item prop="location" label="地区">
-            <el-select v-model="registerForm.location" placeholder="地区" style="width: 100%">
-                <el-option v-for="item in this.AREA" :key="item.value" :label="item.label" :value="item.value"></el-option>
-            </el-select>
-        </el-form-item>
-
         <el-form-item prop="phoneNum" label="手机">
             <el-input v-model="registerForm.phoneNum" placeholder="手机"></el-input>
         </el-form-item>
@@ -45,7 +39,7 @@
     import { defineComponent} from "vue";
     import {mapGetters} from "vuex";
     import { AREA} from "@/enums";
-    import { getUserId,updateUserMsg } from "@/api";
+    import { getUserId,updateUserMsg } from "@/api/backInfo";
 
     export default  defineComponent({
         methods: {

@@ -18,7 +18,6 @@
     </audio>
 </template>
 <script lang="ts">
-    import {attachImageUrl} from '../../api';
     import { defineComponent,getCurrentInstance,ref,watch,computed } from "vue";
     import {mapGetters} from "vuex";
     import { useStore } from "vuex";
@@ -72,7 +71,7 @@
             function ended() {
                 proxy.$store.commit("setIsPlay",false);
                 proxy.$store.commit("setCurTime",0);
-                proxy.$store.commit("setAutoNext",!autoNext.value)
+                proxy.$store.commit("setAutoNext",!autoNext.value) // 触发下一首
             }
 
             return {
@@ -81,7 +80,6 @@
                 canplay,
                 timeupdate,
                 ended,
-                attachImageUrl
             };
         },
         computed: {
