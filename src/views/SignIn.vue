@@ -4,10 +4,10 @@
             <el-tabs >
                 <el-tab-pane label="账号密码登录">
                     <!--账号密码登录表单-->
-                    <el-form ref="pwdLoginFormRef" :model="pwdLoginForm" :rules="pwdLoginFormRules" >
+                    <el-form ref="pwdLoginFormRef" :model="pwdLoginForm" :rules="SignInRules" >
                         <!-- 用户名-->
                         <el-form-item prop="phone">
-                            <el-input placeholder="用户名" clearable v-model="pwdLoginForm.phone" prefix-icon="User">
+                            <el-input placeholder="手机号" clearable v-model="pwdLoginForm.phone" prefix-icon="User">
 
                             </el-input>
                         </el-form-item>
@@ -50,34 +50,56 @@
                 password: "",
             });
 
-            const state = reactive({
-                pwdLoginFormRules: {
-                    phone: [{
-                        required: true,
-                        message: '请输入你的手机号',
-                        trigger: 'blur'
-                    }],
-                    // 验证密码是否合法
-                    password: [{
-                        required: true,
-                        message: '请输入你的密码',
-                        trigger: 'blur'
-                    }]
-                },
 
-            });
+            // 登录规则
+            const validateName = (rule, value, callback) => {
+                if (!value) {
+                    return callback(new Error("手机号不能为空"));
+                } else {
+                    callback();
+                }
+            };
 
+            const validatePassword = (rule, value, callback) => {
+                if (value === "") {
+                    callback(new Error("密码不能为空"));
+                } else {
+                    callback();
+                }
+            };
+
+            const SignInRules = {
+                phone: [{ validator: validateName, trigger: "blur", min: 3 }],
+                password: [{ validator: validatePassword, trigger: "blur", min: 3 }],
+            };
 
             const phoneLoginForm  = reactive({
-                userName: "",
+                phone: "",
                 password: "",
             });
 
 
-            function pwdLogin() {
-                loginByUserName(pwdLoginForm).then(res => {
-                    saveUserInfo(res);
+            /*
+            *  登录函数
+            * */
+            async function pwdLogin() {
+                let canRun = true;
+                (proxy.$refs["pwdLoginFormRef"] as any).validate((valid) => {
+                    if (!valid){
+                        return (canRun = false);
+                    } else {
+                        // 校验通过
+                        try {
+                            loginByUserName(pwdLoginForm).then(res => {
+                                saveUserInfo(res);
+                            });
+                        } catch (error) {
+                            console.error(error);
+                        }
+                    }
                 });
+
+
             }
 
             function saveUserInfo(res) {
@@ -103,7 +125,7 @@
                 pwdLogin,
                 pwdLoginForm,
                 phoneLoginForm,
-                state
+                SignInRules,
             }
         },
 

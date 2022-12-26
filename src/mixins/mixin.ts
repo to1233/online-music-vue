@@ -29,7 +29,7 @@ export default  function () {
             const store = useStore();
             const currentPlayList = computed(() => store.getters.currentPlayList); // 当前播放
             // 获取歌曲的播放链接
-            Client.findSongUrlById(song.id, song.source).then(result => {
+            Client.findSongInfoById(song, song.source).then(result => {
                 if (result.data =='') {
                     (proxy  as any).message.warn("可用链接为空,播放下一首")
                     return;

@@ -174,7 +174,7 @@
                 } else {
                     // 重新去请求一次
                     // 获取歌曲的播放链接
-                    Client.findSongUrlById(row.id, row.source).then(result => {
+                    Client.findSongInfoById(row, row.source).then(result => {
                         if (result.data =='') {
                             this["$message"].warn("可用链接为空,播放下一首")
                             this.nextSong();
@@ -190,7 +190,7 @@
                             source: row.source, // 歌曲来源
                             album: row.album, // 专辑名称
                             index: row.index,
-                            lyric: ''
+                            lyric: result.lyric // 对应的歌词信息
                         };
                         this.currentPlayList[this.currentPlayIndex] =songInfo;
                         this.$store.commit("setCurrentPlayList", this.currentPlayList);

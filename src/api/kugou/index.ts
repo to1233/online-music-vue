@@ -27,17 +27,18 @@ function searchSongs(keyword, page) {
  * 查询歌曲的详情信息
  * @param songId 歌曲id
  */
-function findSongUrlById(songId) {
+function findSongInfoById(row) {
     return request({
-        url: `kuGou/song/findSongUrl/${songId}`,
-        method: 'get',
+        url: 'kuGou/song/findSongUrl',
+        method: 'post',
+        data: {songId: row.id, albumId: row.album_id}
     }).then(resizeBy => {
-        if(resizeBy.url =='') {
-            resizeBy =  findSongUrlVipById(songId);
-        }
-        return {data: resizeBy.url,imgUrl: resizeBy.imgUrl};
+        return {data: resizeBy.play_url,imgUrl: resizeBy.img,lyric:resizeBy.lyrics};
     })
 }
+
+
+
 
 /**
  * 尝试查询Vip 歌曲
@@ -55,6 +56,19 @@ function findSongUrlVipById(songId) {
 }
 
 
+/**
+ * 根据歌曲id来查询出对应的歌曲的歌词
+ * @param songId 歌曲id
+ */
+function findSongLyricById(row) {
+    return request({
+        url: 'kuGou/song/lyric',
+        method: 'post',
+        data: {'songId': row.id,'albumId': row.album_id}
+    })
+}
+
+
 
 /**
  * 数据源标识
@@ -65,5 +79,6 @@ const meta = {name: '酷狗', enName: 'kugou'}
 export default {
     searchSongs,
     meta,
-    findSongUrlById
+    findSongLyricById,
+    findSongInfoById
 }

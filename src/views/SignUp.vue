@@ -1,8 +1,8 @@
 <template>
     <div>
         <el-form ref="signUpForm" label-width="70px" status-icon :model="registerForm" :rules="SignUpRules">
-            <el-form-item prop="username" label="用户名">
-                <el-input v-model="registerForm.username" placeholder="用户名"></el-input>
+            <el-form-item prop="userName" label="用户名">
+                <el-input v-model="registerForm.userName" placeholder="用户名"></el-input>
             </el-form-item>
             <el-form-item prop="password" label="密码">
                 <el-input type="password" placeholder="密码" v-model="registerForm.password"></el-input>
@@ -40,27 +40,70 @@
     import { defineComponent } from "vue";
     import { getCurrentInstance, reactive } from "vue";
     import { AREA } from "@/enums";
-    import { signUp} from "@/api/client";
+    import { registerUser} from "@/api/backInfo";
+    import {setToken} from "@/utils/auth";
     export default  defineComponent({
         emits: ["closeSignUpDialog"],
         setup() {
             const { proxy } = getCurrentInstance();
 
             const registerForm = reactive({
-                username: "",
+                userName: "",
                 password: "",
                 sex: "",
                 phoneNum: "",
                 email: "",
                 birth: new Date(),
                 introduction: "",
-                location: "",
             });
+
+            // 密码二次校验
+            const validatePass2 = (rule , value , callback) => {
+                if (value === '') {
+                    callback(new Error('Please input the password again'))
+                } else if (value !== registerForm.password) {
+                    callback(new Error("Two inputs don't match!"))
+                } else {
+                    callback()
+                }
+            }
+
+            const SignUpRules = {
+                userName: [{ required: true, trigger: "blur", min: 3 }],
+                password: [{ required: true, trigger: "blur", min: 3 }],
+                confirmPassword: [{ validator: validatePass2, trigger: 'blur' }],
+                sex: [{ required: true, message: "请选择性别", trigger: "change" }],
+                phoneNum: [{ message: "请选择填写手机号", trigger: "blur" }],
+                email: [
+                    { message: "请输入邮箱地址", trigger: "blur" },
+                    {
+                        type: "email",
+                        message: "请输入正确的邮箱地址",
+                        trigger: ["blur", "change"],
+                    },
+                ],
+            };
 
             // 注册并登录
             function handleSignUp() {
-                signUp(registerForm).then(res => {
-                   console.log(res);
+                (proxy.$refs["signUpForm"]).validate((valid) => {
+                    if (!valid) {
+                        return (canRun = false);
+                    } else {
+                        registerUser(registerForm).then(res => {
+                            proxy.$message({
+                                message: "注册成功",
+                                type: "success",
+                            })
+                            // 如果注册成功则使用token 赋值
+                            proxy.$store.commit("setToken", true);
+                            proxy.$store.commit("setUserName", res.userName);
+                            proxy.$store.commit("setUserId", res.userId);
+                            proxy.$store.commit("setUserPic", res.avator);
+                            setToken(res.token);
+                            proxy.$emit("closeSignUpDialog");
+                        });
+                    }
                 });
             }
 
@@ -73,6 +116,7 @@
                 registerForm,
                 handleSignUp,
                 cancel,
+                SignUpRules,
                 AREA
             };
 

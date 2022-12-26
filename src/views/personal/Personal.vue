@@ -1,9 +1,12 @@
 <template>
     <div class="personal">
         <div class="personal-info">
-            <el-image class="personal-img" fit="contain" :src="imageUrl(userPic)" @click="dialogTableVisible = true"/>
+            <div @click="changeDialog()">
+                <el-image  class="personal-img" fit="contain" :src="userPic" />
+            </div>
+
             <div class="personal-msg">
-                <div class="userName"> {{ personalInfo.userName}}</div>
+                <div class="userName" > {{ personalInfo.userName}}</div>
                 <div class="introduction"> {{ personalInfo.introduction}}</div>
             </div>
             <el-button class="edit-info" round @click="goPage()">修改个人信息</el-button>
@@ -90,6 +93,10 @@
         methods: {
             goPage() {
                 this.$router.push("/setting");
+            },
+            changeDialog() {
+                this.dialogTableVisible  = !this.dialogTableVisible;
+                console.log(this.dialogTableVisible);
             },
             getUserInfo(id) {
                 getUserId(id).then(res => {

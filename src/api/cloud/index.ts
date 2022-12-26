@@ -1,5 +1,6 @@
 import {service as request, getBaseURL} from '@/utils/request';
 import {cloud_convert} from "@/utils/common";
+import axios from "axios";
 
 
 /**
@@ -31,7 +32,6 @@ function hotSearchList() {
         url: 'cloud/song/hotSearch',
         method: 'get',
     }).then(resizeBy => {
-        console.log(resizeBy);
         let hots = resizeBy.hots == undefined ? [] : resizeBy.hots.map(item => {
             return {
                 value: item.first,
@@ -106,12 +106,12 @@ function findSheetInfoById(sheetId) {
 }
 
 /**
- * 根据歌曲id来查询出对应的歌曲详情信息
+ * 根据歌曲id来查询出对应的歌曲的歌词
  * @param songId 歌曲id
  */
-function findSongDetailById(songId) {
+function findSongLyricById(songId) {
     return request({
-        url: `cloud/song/detail/${songId}`,
+        url: `cloud/song/lyric/${songId}`,
         method: 'get',
     })
 }
@@ -124,10 +124,17 @@ function findSongUrlById(songId) {
     return request({
         url: `cloud/song/findSongUrl/${songId}`,
         method: 'get',
-    }).then(resizeBy => {
-        return {data: resizeBy[0].url}
     })
 }
+
+function findSongInfoById({id}) {
+    return axios.all([findSongUrlById(id), findSongLyricById(id)])
+        .then(axios.spread(function (acct, perms) {
+            // 两个请求现在都执行完成
+            return {data: acct[0].url,lyric: perms};
+        }));
+}
+
 
 /**
  * 分页查询热门歌手信息
@@ -169,58 +176,6 @@ function findSongListBySheetId(sheetId) {
     })
 }
 
-
-/**
- * 查询对应的歌单评分
- * @param sheetId 歌单id
- */
-export function findRankBySheetId(sheetId) {
-    return request({
-        url: `cloud/songSheet/findRankBySheetId/${sheetId}`,
-        method: 'get',
-    })
-}
-
-/**
- * 用户登录
- * @param userInfo
- */
-export function loginByUserName(userInfo) {
-    return request({
-        url: 'loginByUserName',
-        method: 'post',
-        data: userInfo,
-    })
-}
-
-
-/**
- * 用户登录 手机登录
- * @param userInfo
- */
-export function loginByPhone(userInfo) {
-    return request({
-        url: 'loginByPhone',
-        method: 'post',
-        data: userInfo,
-    })
-}
-
-// 更新用户头像
-export function uploadUrl(userId) {
-    return `${getBaseURL()}/user/avatar/update?id=${userId}`;
-}
-
-/**
- * 注册信息
- */
-export function signUp(userInfo) {
-    return request({
-        url: 'signUp',
-        method: 'post',
-        data: userInfo,
-    })
-}
 
 
 /**
@@ -289,8 +244,7 @@ export default {
     searchSongSuggest,
     getSongSheetList,
     findSheetInfoById,
-    findSongDetailById,
-    findSongUrlById,
+    findSongInfoById,
     hotSearchList,
     searchSongs,
     getSingerList,

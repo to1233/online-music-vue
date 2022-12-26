@@ -1,5 +1,6 @@
 import {service as request } from '@/utils/request';
 import {kuwo_convert} from "@/utils/common";
+import axios from "axios";
 
 /**
  * 查询酷我对应的歌曲信息
@@ -44,6 +45,24 @@ function findSongUrlById(songId) {
     })
 }
 
+/**
+ * 根据歌曲id来查询出对应的歌曲的歌词
+ * @param songId 歌曲id
+ */
+function findSongLyricById(songID) {
+    return request({
+        url: `kuwo/song/lyric/${songID}`,
+        method: 'get',
+    })
+}
+
+function findSongInfoById({id}) {
+   return axios.all([findSongUrlById(id), findSongLyricById(id)])
+        .then(axios.spread(function (acct, perms) {
+            // 两个请求现在都执行完成
+            return {data: acct.data,lyric: perms};
+        }));
+}
 
 /**
  * 查询歌手的详情信息
@@ -54,7 +73,6 @@ function getSingerInfoById(singerId) {
         url: `kuwo/singer/findSingerDetailById/${singerId}`,
         method: 'get',
     }).then(resizeBy => {
-        console.log(resizeBy);
         let singerDetail = resizeBy.artist;
         // 艺术家个人信息
         const artist = {
@@ -79,6 +97,7 @@ export default {
     meta,
     searchSongs,
     findSongDetailById,
-    findSongUrlById,
+     findSongInfoById,
+    findSongLyricById,
     getSingerInfoById,
 }

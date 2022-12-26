@@ -79,10 +79,16 @@
                 // 如果已经登录则向后端发送请求并记录当前的歌单信息
                 if(token.value) {
                     saveUserTempPlayList(currentPlayList.value).then(resizeBy => {
-                        (proxy as any).$message.success("添加成功");
+                        (proxy as any).$message({
+                            message: "添加成功",
+                            type: "success",
+                        })
                     });
                 } else {
-                    (proxy as any).$message.warn("请先登录");
+                    (proxy as any).$message({
+                        message: "请先登录",
+                        type: "warn",
+                    })
                     // 弹出登录窗口
                     proxy.$store.commit("setSignInDiaLog",true);
                 }

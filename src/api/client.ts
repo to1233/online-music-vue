@@ -1,11 +1,11 @@
 import cloud from '../api/cloud/index';
 import kuwo from '../api/kuwo/index' ;
-import qq from '../api/qq/index';
+import qq from '../api/qq/index';  // 垃圾腾讯云
 import kugou from '../api/kugou/index';
 /**
  * 可用客户端
  */
-const availableProvider = [kuwo,cloud, , qq, kugou];
+const availableProvider = [kuwo,cloud,  kugou];
 const enableProvider = availableProvider;
 const sourceNameProvider = {};
 
@@ -66,15 +66,9 @@ export default class Client {
         return provider.searchSongSuggest(keyword);
     }
 
-    static findSongDetailById(songId, sourceName) {
+    static findSongInfoById(row, sourceName) {
         const provider = getProviderName(sourceName);
-        return provider.findSongDetailById(songId);
-    }
-
-
-    static findSongUrlById(songId, sourceName) {
-        const provider = getProviderName(sourceName);
-        return provider.findSongUrlById(songId)
+        return provider.findSongInfoById(row)
     }
 
     static hotSearchList(sourceName) {

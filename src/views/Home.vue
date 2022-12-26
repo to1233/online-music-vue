@@ -26,9 +26,9 @@
                 <el-tab-pane label="酷我音乐" name="kuwo">
                     <PlayList :activeName="activeName" :playList="songList" @changeDataList="changeDataList"></PlayList>
                 </el-tab-pane>
-                <el-tab-pane label="QQ音乐" name="qq">
+              <!--  <el-tab-pane label="QQ音乐" name="qq">
                     <PlayList :activeName="activeName" :playList="songList" @changeDataList="changeDataList"></PlayList>
-                </el-tab-pane>
+                </el-tab-pane>-->
                 <el-tab-pane label="酷狗音乐" name="kugou">
                     <PlayList :activeName="activeName" :playList="songList" @changeDataList="changeDataList"></PlayList>
                 </el-tab-pane>

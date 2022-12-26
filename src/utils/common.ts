@@ -116,7 +116,7 @@ export function kuwo_convert(song) {
         singerName: song.artist,
         singerId: song.artistid,
         album: song.album,
-        album_id: `kgalbum_${song.albumid}`,
+        album_id: song.albumid,
         source: 'kuwo',
         sourceName: '酷我',
         source_url: '',
@@ -154,12 +154,13 @@ export function kugou_convert(song) {
         singerName: song.SingerName,
         singerId: song.SingerId,
         album: song.AlbumName,
-        album_id: `kgalbum_${song.AlbumID}`,
+        album_id: song.AlbumID,
         pic: '',
         source: 'kugou',
         sourceName: '酷狗',
         source_url: `http://www.kugou.com/song/#hash=${song.FileHash}&album_id=${song.AlbumID}`,
-        disabled: false
+        disabled: false,
+        lyric_url: song.FileHash,
     })
 
 }

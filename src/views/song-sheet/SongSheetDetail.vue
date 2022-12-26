@@ -68,6 +68,7 @@
                 this.currentSongList = res.playlist.tracks.map(cloud_convert).filter(item => {
                     return !item.disabled
                 }); // 歌单中的歌曲信息
+                console.log(this.currentSongList);
             })
         },
         setup() {
@@ -97,10 +98,11 @@
                 if(this.currentSongList.length > 0) {
                     const song = this.currentSongList[0];
                     // 获取歌曲的播放链接
-                    Client.findSongUrlById(song.id, song.source).then(result => {
+                    Client.findSongInfoById(song, song.source).then(result => {
                         const songInfo = song;
                         songInfo .url = result.data,
-                         songInfo.pic = songInfo.pic == '' ? result.imgUrl : songInfo.pic,
+                            songInfo.pic = songInfo.pic == '' ? result.imgUrl : songInfo.pic,
+                            songInfo.lyric = result.lyric
                         this.currentSongList[0] =songInfo;
                         this.$store.dispatch('playMusicList',this.currentSongList);
                     });

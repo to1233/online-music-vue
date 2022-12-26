@@ -1,11 +1,8 @@
 <template>
     <div class="upload">
-        <el-upload drag :action="uploadUrl(this.userId)" :show-file-list="false" :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
-            <el-icon class="el-icon--upload">upload-filled</el-icon>
-            <div class="el-upload_text">将文件拖到或者点击上传</div>
-            <template #tip>
-                <p class="el-upload__tip">只能上传 {{uploadTypes}}</p>
-            </template>
+        <el-upload drag :action="getUploadUrl(this.userId)" :show-file-list="false" :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
+            <img v-if="imageUrl" :src="imageUrl" class="avatar" />
+            <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
         </el-upload>
     </div>
 
@@ -14,7 +11,7 @@
 <script>
     import { defineComponent } from "vue";
 
-    import { uploadUrl } from "@/api/client";
+    import { uploadUrl } from "@/api/backInfo";
     import {mapGetters} from "vuex";
     export default  defineComponent({
         methods: {
@@ -33,14 +30,18 @@
                 }
                 return isLt10M && isExistFileType;
             },
+            // 获取到用户上传的路径
+            getUploadUrl(userId) {
+              return uploadUrl(userId) ;
+            },
 
             // 上传成功后的回调
             handleAvatarSuccess(response, file) {
                 this.$message({
-                    message: response.message,
-                    type: response.type,
+                    message: response.msg,
+                    type: response.code == 200 ? 'success' : 'warn',
                 });
-                if (response.success) this.$store.commit("setUserPic", response.data);
+                if (response.code == 200) this.$store.commit("setUserPic", response.msg);
             }
 
         },
@@ -70,6 +71,35 @@
         display: flex;
         justify-content: center;
         align-items: center;
+    }
+
+    .avatar-uploader .avatar {
+        width: 178px;
+        height: 178px;
+        display: block;
+    }
+    </style>
+
+      <style>
+      .avatar-uploader .el-upload {
+          border: 1px dashed var(--el-border-color);
+          border-radius: 6px;
+          cursor: pointer;
+          position: relative;
+          overflow: hidden;
+          transition: var(--el-transition-duration-fast);
+      }
+
+    .avatar-uploader .el-upload:hover {
+        border-color: var(--el-color-primary);
+    }
+
+    .el-icon.avatar-uploader-icon {
+        font-size: 28px;
+        color: #8c939d;
+        width: 178px;
+        height: 178px;
+        text-align: center;
     }
 </style>
 

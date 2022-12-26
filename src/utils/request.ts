@@ -7,6 +7,7 @@ import { ElMessage,ElNotification  } from 'element-plus'
 
 axios.defaults.headers['Content-Type'] = 'application/json;charset=utf-8'
 
+
 const  BASE_URL = 'http://localhost:8889';
 // 创建axios 实例
 const service  = axios.create({

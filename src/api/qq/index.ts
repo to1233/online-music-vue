@@ -1,5 +1,6 @@
 import {service as request} from '@/utils/request';
 import {qq_convert} from "@/utils/common";
+import axios from "axios";
 
 
 /**
@@ -33,13 +34,31 @@ function findSongUrlById(songId) {
         method: 'get',
     }).then(resizeBy => {
         if (resizeBy.req_0.data.midurlinfo[0].purl === '') {
-
             return '';
         }
         return {data: resizeBy.req_0.data.sip[0] + resizeBy.req_0.data.midurlinfo[0].purl}
     })
 }
+/**
+ * 根据歌曲id来查询出对应的歌曲的歌词
+ * @param songId 歌曲id
+ */
+function findSongLyricById(songID) {
+    return request({
+        url: `qq/song/findSongLyric/${songID}`,
+        method: 'get',
+    })
+}
 
+
+
+function findSongInfoById({id}) {
+    return axios.all([findSongUrlById(id), findSongLyricById(id)])
+        .then(axios.spread(function (acct, perms) {
+            // 两个请求现在都执行完成
+            return {data: acct.data,lyric: perms};
+        }));
+}
 
 
 const meta = {name: 'qq', enName: 'qq'}
@@ -47,7 +66,8 @@ const meta = {name: 'qq', enName: 'qq'}
 export default {
     meta,
     searchSongs,
-    findSongUrlById
+    findSongUrlById,
+    findSongInfoById
 }
 
 

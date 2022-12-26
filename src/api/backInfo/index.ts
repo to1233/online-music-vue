@@ -163,6 +163,15 @@ function deleteCollectSong(songId) {
     })
 }
 
+// 更新用户头像
+function uploadUrl(userId) {
+    return `${getBaseURL()}/sys/uploadHead/${userId}`;
+}
+
+
+
+
+
 export {
     loginByUserName,
     attachImageUrl,
@@ -177,5 +186,6 @@ export {
     getCollectInfoSongSheet,
     deleteCollectSongSheet,
     deleteCollectSong,
-    saveUserSongInfo
+    saveUserSongInfo,
+    uploadUrl
 }

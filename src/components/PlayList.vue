@@ -5,7 +5,9 @@
                   @cell-mouse-leave="cellMouseLeave">
             <el-table-column prop="songTitle" label="歌曲名" width="540">
                 <template #default="scope">
-                    <div v-if="isAll"> {{ scope.row.songTitle }}&nbsp&nbsp<el-tag :type="sourceColor(scope.row.source)">{{ scope.row.sourceName }}</el-tag></div>
+                    <div v-if="isAll"> {{ scope.row.songTitle }}&nbsp&nbsp
+                        <el-tag :type="sourceColor(scope.row.source)">{{ scope.row.sourceName }}</el-tag>
+                    </div>
                     <div v-else> {{ scope.row.songTitle }}</div>
                 </template>
             </el-table-column>
@@ -28,7 +30,7 @@
 
                         <el-tooltip class="item" effect="dark" content="收藏到我的歌单" placement="top" v-else>
                             <el-icon>
-                                <DocumentAdd style=" margin-right: 8px" @click="addCollectSong(scope.row)"  />
+                                <DocumentAdd style=" margin-right: 8px" @click="addCollectSong(scope.row)"/>
                             </el-icon>
                         </el-tooltip>
 
@@ -51,7 +53,7 @@
     import Client from "@/api/client";
     import {mapGetters, useStore} from "vuex";
     import {DocumentAdd, Paperclip, Plus} from '@element-plus/icons-vue';
-    import { saveUserSongInfo } from "@/api/backInfo";
+    import {saveUserSongInfo} from "@/api/backInfo";
 
     export default defineComponent({
         props: {
@@ -59,7 +61,7 @@
             path: String,
             isAll: {
                 type: Boolean,
-                default : false
+                default: false
             },
             isOwn: {
                 type: Boolean,
@@ -67,7 +69,7 @@
             }
         },
         setup(props) {
-            const sourceColorArray = {'netease':'success','kuwo':'warning','kugou':'danger'}
+            const sourceColorArray = {'netease': 'success', 'kuwo': 'warning', 'kugou': 'danger'}
             const {proxy} = getCurrentInstance();
             const store = useStore();
             const currentPlayList = computed(() => store.getters.currentPlayList); // 当前播放
@@ -75,53 +77,56 @@
             const token = computed(() => store.getters.token);
 
 
+            const {path, playList, isAll} = toRefs(props);
 
-            const {path, playList,isAll} = toRefs(props);
             function goAblum(item) {
                 // 这里歌手和歌单公用
                 proxy.$router.push({path: `/${path.value}`, query: {itemId: item.id}});
             }
 
             // 点击某一行触发的事件 点击歌曲
-            function handleSong(row, event, column) {
+            function handleSong(row,column, event) {
+                if (column.cancelable=='操作') {
+                    return ;
+                }
                 // 获取歌曲的url 和详情信息,显示当前的图片然后进行播放
                 // 查询歌曲的详细信息
                 // 获取歌曲的播放链接
-                    let aimIndex = currentPlayList.value.findIndex((v) => {
-                        return v.id == row.id
-                    });
-                    if (aimIndex == -1) {
-                        Client.findSongUrlById(row.id, row.source).then(result => {
-                            if (result.data == '') {
-                                (proxy as any).$message({
-                                    message: "该歌曲不支持播放",
-                                    type: "error",
-                                });
-                                return;
-                            }
-                            let songInfo = {
-                                id: row.id,
-                                url: result.data,
-                                pic: row.pic == '' ? result.imgUrl : row.pic,
-                                index: 1 ,
-                                songTitle: row.songTitle,
-                                singerName: row.singerName,
-                                singerId: row.singerId,
-                                source: row.source, // 歌曲来源
-                                album: row.album, // 专辑名称
-                                lyric: ''
-                            };
-                            //当前播放列表中没有此歌曲则向列表中添加 添加的位置为当前的播放的位置后面
-                            songInfo.index = currentPlayIndex.value+ 1;
-                            currentPlayList.value.splice(currentPlayIndex.value + 1, 0, songInfo);
-                            proxy.$store.commit("setCurrentPlayList", currentPlayList.value);
-                            proxy.$store.dispatch("playMusic", songInfo);
-                        });
-                    } else {
-                        // 如果存在于当前播放列表中
-                        let songInfo =  currentPlayList[aimIndex];
+                let aimIndex = currentPlayList.value.findIndex((v) => {
+                    return v.id == row.id
+                });
+                if (aimIndex == -1) {
+                    Client.findSongInfoById(row, row.source).then(result => {
+                        if (result.data == '') {
+                            (proxy as any).$message({
+                                message: "该歌曲不支持播放",
+                                type: "error",
+                            });
+                            return;
+                        }
+                        let songInfo = {
+                            id: row.id,
+                            url: result.data,
+                            pic: row.pic == '' ? result.imgUrl : row.pic,
+                            index: 1,
+                            songTitle: row.songTitle,
+                            singerName: row.singerName,
+                            singerId: row.singerId,
+                            source: row.source, // 歌曲来源
+                            album: row.album, // 专辑名称
+                            lyric: result.lyric // 歌词信息
+                        };
+                        //当前播放列表中没有此歌曲则向列表中添加 添加的位置为当前的播放的位置后面
+                        songInfo.index = currentPlayIndex.value + 1;
+                        currentPlayList.value.splice(currentPlayIndex.value + 1, 0, songInfo);
+                        proxy.$store.commit("setCurrentPlayList", currentPlayList.value);
                         proxy.$store.dispatch("playMusic", songInfo);
-                    }
+                    });
+                } else {
+                    // 如果存在于当前播放列表中
+                    let songInfo = currentPlayList.value[aimIndex];
+                    proxy.$store.dispatch("playMusic", songInfo);
+                }
             }
 
 
@@ -160,21 +165,20 @@
              */
             function addCollectSong(row) {
                 // 如果已经登录则向后端发送请求并记录当前的歌单信息
-                if(token.value) {
+                if (token.value) {
                     saveUserSongInfo(row).then(resizeBy => {
                         (proxy as any).$message.success("添加成功");
                     });
                 } else {
                     (proxy as any).$message.warn("请先登录");
                     // 弹出登录窗口
-                    proxy.$store.commit("setSignInDiaLog",true);
+                    proxy.$store.commit("setSignInDiaLog", true);
                 }
             }
 
 
-
             function sourceColor(source) {
-              return sourceColorArray[source];
+                return sourceColorArray[source];
             }
 
 
@@ -193,7 +197,8 @@
         },
         methods: {}
 
-    });
+    })
+    ;
 
 </script>
 
